@@ -1,0 +1,10 @@
+# Байт-код, оптимизированные / DLL-файлы
+__pycache__/
+*.py[cod]
+
+# Файлы конфигурации для venv
+.idea
+
+docker_airflow/logs/*
+
+docker_airflow/airflowenv
