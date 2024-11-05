@@ -33,6 +33,6 @@ PROD
 
 DAG my_first_dag имеет 4 task:
 - print_date просто с помощью BashOperator выводит дату в консоль. Моя первая task.
-- insert_data_dev используя PythonOperator вставляет в таблицу public.newtable (DEV) пачками по 10 строки со значением 666 и кастомным run_id (каждый следующий run_id это прошлый + 1)
+- insert_data_dev используя PythonOperator вставляет в таблицу public.newtable (DEV) пачками по 10 строк со значением 666 и кастомным run_id (каждый следующий run_id это прошлый + 1)
 - insert_select_newtable_1 еще одна бесполезная task, которая с помощью SQLExecuteQueryOperator переливает данные из public.newtable в public.newtable_1 в рамках БД DEV
-- migration_prod это самая полезная task, переливает данные между DEV и PROD, так же получает run_id (который отображается в UI) из контекста запуска DAG и логирует это в таблице public.log связывая название DAG кастомный run_id и оригинальный run_id
+- migration_prod это самая полезная task, переливает данные между DEV и PROD, так же получает run_id (который отображается в UI) из контекста запуска DAG и логирует это в таблице public.log, связывая название DAG кастомный run_id и оригинальный run_id
