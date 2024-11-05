@@ -1,6 +1,6 @@
 # Learn docker and airflow and python
 
-## Просто учу airflow, docker и python
+_Просто учу airflow, docker и python_
 
 Архитектуру рисовал после создания первого DAG. Поэтому она пока не соотвествует тому, что сейчас реализовано.
 
