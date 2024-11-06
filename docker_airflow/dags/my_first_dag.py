@@ -16,49 +16,57 @@ from airflow.models.dag  import DagContext
 
 # [END import_module]
 
-def dev2prod_data(**context):
-    ui_run_id = context['dag_run'].run_id#Забираем данные запуска дага из контекста
-    #Работа с источником
-    #Получаем соединение с базой dev
-    pg_hook = PostgresHook(postgres_conn_id='Conn1') #Коннект из с вебинтерфейса аирфлоу
-    connection = pg_hook.get_conn() # Получаем коннект с помощью Хука
-    cursor = connection.cursor() # Получаем курсор постгрес
+def get_cursor(conn_id):
 
-    #Получаем набор данных из dev
-    sql = 'SELECT * FROM public.newtable;'
-    cursor.execute(sql) # Получаем набор данных в курсор
-    sources = cursor.fetchall() # Передаем все строки из запроса в кортеж(tuple)
+    hook = PostgresHook(postgres_conn_id=conn_id)
+    connection = hook.get_conn()
     
-    #Работа с таргетом
-    #Получаем соединений с базой prod
-    pg_hook_prod = PostgresHook(postgres_conn_id='Conn2')
-    connection_prod = pg_hook_prod.get_conn() # Получаем коннект с помощью Хука
-    cursor_prod = connection_prod.cursor() # Получаем курсор постгрес
+    return connection.cursor()  
 
-    #Формируем запрос на вставку данных в прод
+def dev2prod_data(**context):
+    """
+    Функция dev2prod_data копирует данные из базы данных dev в базу данных prod.
+
+    Процесс:
+    1. Получаем данные запуска дага из контекста.
+    2. Получаем набор данных из dev.
+    3. Формируем запрос на вставку данных в prod.
+    4. Вставляем данные в prod.
+    5. Логируем в таблицу log, связываем Даг и ID запуска.
+
+    """
+    ui_run_id = context['dag_run'].run_id
+
+    # Работа с источником
+    cursor_dev = get_cursor("Conn1")
+
+    sql = 'SELECT * FROM public.newtable;'
+    cursor_dev.execute(sql)
+    sources = cursor_dev.fetchall()
+
+    # Работа с таргетом
+    cursor_prod = get_cursor("Conn2")
+
     sql_insert = 'TRUNCATE TABLE public.newtable;'
     for source in sources:
-        sql_insert = sql_insert + 'INSERT INTO public.newtable (column1, run_id) VALUES('+ str(source)[1:-1] +');' # Собираем запрос на вставку
-    sql_insert = sql_insert + 'commit;' # Коммитим вставленные строки
-    cursor_prod.execute(sql_insert) # Вставляем данные
+        sql_insert = sql_insert + 'INSERT INTO public.newtable (column1, run_id) VALUES(' + str(source)[1:-1] + ');'
+    sql_insert = sql_insert + 'commit;'
+    cursor_prod.execute(sql_insert)
 
-    #Логируем в таблицу log, связываем Даг и ID запуска
+    # Логируем в таблицу log, связываем Даг и ID запуска
     sql_run_id = 'select max(run_id) from public.newtable;'
     cursor_prod.execute(sql_run_id)
-    run_id = cursor_prod.fetchone() #Проучаем кастомный id запуска Дага
-    sql_log = "insert into public.log(dag, run_id, ui_run_id)values('my_first_dag',"+ str(run_id)[1:-2] + ",'" + str(ui_run_id) +"');commit;"
-    cursor_prod.execute(sql_log)#Привязываем id запуска к дагу в логах
+    run_id = cursor_prod.fetchone()
+    sql_log = "insert into public.log(dag, run_id, ui_run_id)values('my_first_dag', " + str(run_id)[1:-2] + ", '" + str(ui_run_id) + "');commit;"
+    cursor_prod.execute(sql_log)
 
     return sql_insert
 
 def insert_data_dev():
-    #Получаем соединение с базой данных дев для дальнейшей работы с ней
-    pg_hook_dev = PostgresHook(postgres_conn_id='Conn1')
-    connection_dev = pg_hook_dev.get_conn()
-    cursor_dev = connection_dev.cursor()
 
     #Получаем кастомный id запуска дага
     select_run_id_last = 'select max(run_id) from public.newtable;'
+    cursor_dev = get_cursor("Conn1")
     cursor_dev.execute(select_run_id_last)
     run_id_last = cursor_dev.fetchone()
     run_id_next = int(str(run_id_last)[1:-2]) + 1
