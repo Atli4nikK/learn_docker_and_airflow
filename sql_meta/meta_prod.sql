@@ -13,3 +13,13 @@ CREATE TABLE public.log (
 	ui_run_id varchar DEFAULT '':character varying NOT NULL
 );
 /
+CREATE SCHEMA tweet AUTHORIZATION admin2;
+/
+CREATE TABLE tweet.tweets (
+	"user" varchar NULL,
+	"text" varchar NULL,
+	favorite_count int8 NULL,
+	retweet_count int8 NULL,
+	created_at timestamptz NULL
+);
+/

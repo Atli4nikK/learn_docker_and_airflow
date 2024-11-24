@@ -8,77 +8,12 @@ from airflow.models.dag import DAG
 from airflow.operators.bash import BashOperator
 from airflow.providers.common.sql.operators.sql import SQLExecuteQueryOperator
 from airflow.operators.python import PythonOperator
-
-from airflow.providers.postgres.hooks.postgres import PostgresHook
-
 from airflow.utils.dates import days_ago
 from airflow.models.dag  import DagContext
 
+from utils.dev2prod_data import dev2prod_data
+from utils.insert_data_dev import insert_data_dev
 # [END import_module]
-
-def get_cursor(conn_id):
-
-    hook = PostgresHook(postgres_conn_id=conn_id)
-    connection = hook.get_conn()
-    
-    return connection.cursor()  
-
-def dev2prod_data(**context):
-    """
-    Функция dev2prod_data копирует данные из базы данных dev в базу данных prod.
-
-    Процесс:
-    1. Получаем данные запуска дага из контекста.
-    2. Получаем набор данных из dev.
-    3. Формируем запрос на вставку данных в prod.
-    4. Вставляем данные в prod.
-    5. Логируем в таблицу log, связываем Даг и ID запуска.
-
-    """
-    ui_run_id = context['dag_run'].run_id
-
-    # Работа с источником
-    cursor_dev = get_cursor("Conn1")
-
-    sql = 'SELECT * FROM public.newtable;'
-    cursor_dev.execute(sql)
-    sources = cursor_dev.fetchall()
-
-    # Работа с таргетом
-    cursor_prod = get_cursor("Conn2")
-
-    sql_insert = 'TRUNCATE TABLE public.newtable;'
-    for source in sources:
-        sql_insert = sql_insert + 'INSERT INTO public.newtable (column1, run_id) VALUES(' + str(source)[1:-1] + ');'
-    sql_insert = sql_insert + 'commit;'
-    cursor_prod.execute(sql_insert)
-
-    # Логируем в таблицу log, связываем Даг и ID запуска
-    sql_run_id = 'select max(run_id) from public.newtable;'
-    cursor_prod.execute(sql_run_id)
-    run_id = cursor_prod.fetchone()
-    sql_log = "insert into public.log(dag, run_id, ui_run_id)values('my_first_dag', " + str(run_id)[1:-2] + ", '" + str(ui_run_id) + "');commit;"
-    cursor_prod.execute(sql_log)
-
-    return sql_insert
-
-def insert_data_dev():
-
-    #Получаем кастомный id запуска дага
-    select_run_id_last = 'select max(run_id) from public.newtable;'
-    cursor_dev = get_cursor("Conn1")
-    cursor_dev.execute(select_run_id_last)
-    run_id_last = cursor_dev.fetchone()
-    run_id_next = int(str(run_id_last)[1:-2]) + 1
-
-    #Вставка пачкой по 10
-    sql_insert_run_id = str()
-    for i in range(10):
-        sql_insert_run_id = sql_insert_run_id + 'insert into public.newtable(column1,run_id) values('+ str(666) + ',' + str(run_id_next) + ');' # Коммитим вставленные строки
-    sql_insert_run_id = sql_insert_run_id + 'commit;'
-    cursor_dev.execute(sql_insert_run_id) # Вставляем данные
-
-    return run_id_next
  
 # [START instantiate_dag]
 with DAG(
