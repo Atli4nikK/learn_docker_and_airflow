@@ -8,3 +8,5 @@ __pycache__/
 docker_airflow/logs/*
 
 docker_airflow/airflowenv
+
+docker_airflow/dags/utils/config.py

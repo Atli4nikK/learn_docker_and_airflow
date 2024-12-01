@@ -13,6 +13,7 @@ from airflow.models.dag  import DagContext
 
 from utils.dev2prod_data import dev2prod_data
 from utils.insert_data_dev import insert_data_dev
+from utils.notify import notify_on_failure
 # [END import_module]
  
 # [START instantiate_dag]
@@ -35,7 +36,7 @@ with DAG(
         # 'wait_for_downstream': False,
         # 'sla': timedelta(hours=2),
         # 'execution_timeout': timedelta(seconds=300),
-        # 'on_failure_callback': some_function, # or list of functions
+        'on_failure_callback': notify_on_failure, # or list of functions
         # 'on_success_callback': some_other_function, # or list of functions
         # 'on_retry_callback': another_function, # or list of functions
         # 'sla_miss_callback': yet_another_function, # or list of functions

@@ -18,6 +18,7 @@ def twitter_etl():
     from airflow.providers.postgres.hooks.postgres import PostgresHook
 
     from datetime import datetime
+    from utils.send_tg_message import send_message
 
 
     # Инициализируем объект для взаимодействия с Twitter API
@@ -25,7 +26,7 @@ def twitter_etl():
 
     # Получаем твиты пользователя @elonmusk
     # 
-    tweets = scraper.get_tweets("elonmusk", mode="user", number=100, instance="https://nitter.privacydev.net")
+    tweets = scraper.get_tweets("elonmusk", mode="user", number=1000, instance="https://nitter.privacydev.net")
 
     tweet_list = []  # type: List[]
     for tweet in tweets["tweets"]:

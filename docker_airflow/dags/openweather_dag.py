@@ -4,12 +4,11 @@ from airflow.utils.dates import days_ago
 
 from datetime import timedelta
 
-from utils.twitter_etl import twitter_etl
 from utils.notify import notify_on_failure
-
+from utils.openweather_etl import get_weather
 
 with DAG(
-    'twitter_dag',
+    'openweather_dag',
     # [START default_args]
     # These args will get passed on to each operator
     # You can override them on a per-task basis during operator initialization
@@ -35,8 +34,8 @@ with DAG(
         # 'trigger_rule': 'all_success'
     },
     # [END default_args]
-    description="TweeterDAG",
-    schedule=timedelta(days=1),
+    description="WeatherDag",
+    schedule='0 8 * * *',
     start_date=days_ago(2),
     catchup=False,
     tags=["example"],
@@ -44,7 +43,7 @@ with DAG(
 
     python_task = PythonOperator(
         task_id="python_task",
-        python_callable=twitter_etl,
+        python_callable=get_weather,
         # op_kwargs: Optional[Dict] = None,
         # op_args: Optional[List] = None,
         # templates_dict: Optional[Dict] = None

@@ -75,3 +75,6 @@ docker build . --tag extending_airflow:latest
 
 #### twitter_dag
 - **python_task** — собирает твитты и записывает их в PROD таблицу tweet.tweets.
+
+#### openweather_dag
+- **python_task** — каждый день в 8 утра отправляет подогу в телеграм бота
