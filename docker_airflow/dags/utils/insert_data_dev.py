@@ -1,4 +1,4 @@
-def insert_data_dev():
+def insert_data_dev(**context):
     """
     Функция insert_data_dev вставляет данные в базу данных.
 
@@ -17,14 +17,13 @@ def insert_data_dev():
     select_run_id_last = 'select max(run_id) from public.newtable;'
     cursor_dev = get_cursor("Conn1")
     cursor_dev.execute(select_run_id_last)
-    run_id_last = cursor_dev.fetchone()
-    run_id_next = int(str(run_id_last)[1:-2]) + 1
+    run_id = context['dag_run'].run_id
 
     # Вставка пачкой по 10
     sql_insert_run_id = str()
     for i in range(10):
-        sql_insert_run_id = sql_insert_run_id + 'insert into public.newtable(column1,run_id) values(' + str(666) + ',' + str(run_id_next) + ');'  # Коммитим вставленные строки
+        sql_insert_run_id = sql_insert_run_id + 'insert into public.newtable(column1,run_id) values(' + str(666) + ',' + str(run_id) + ');'  # Коммитим вставленные строки
     sql_insert_run_id = sql_insert_run_id + 'commit;'
     cursor_dev.execute(sql_insert_run_id)  # Вставляем данные
 
-    return run_id_next
+    return run_id

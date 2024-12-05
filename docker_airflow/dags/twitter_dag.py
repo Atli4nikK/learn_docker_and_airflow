@@ -36,7 +36,7 @@ with DAG(
     },
     # [END default_args]
     description="TweeterDAG",
-    schedule=timedelta(days=1),
+    schedule=None,
     start_date=days_ago(2),
     catchup=False,
     tags=["example"],
