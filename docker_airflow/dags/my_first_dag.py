@@ -14,6 +14,7 @@ from utils.dev2prod_data import dev2prod_data
 from utils.insert_data_dev import insert_data_dev
 from utils.notify import notify_on_failure, notify_on_success
 
+
 # [END import_module]
 def get_params(**context):
     params = context['dag_run'].conf
