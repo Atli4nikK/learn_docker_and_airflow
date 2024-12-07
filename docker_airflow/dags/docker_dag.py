@@ -46,7 +46,7 @@ with DAG(
         task_id="train_model",
         docker_url="tcp://docker-socket-proxy:2375",
         api_version="auto",
-        auto_remove=False, # в случае True контейнер самовыпиливается после отработки ДАГА
+        auto_remove=True, # в случае True контейнер самовыпиливается после отработки ДАГА
         image="train_model:v1.0",
         container_name="train_model",
         environment={},
