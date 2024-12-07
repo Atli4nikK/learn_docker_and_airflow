@@ -9,13 +9,15 @@ from airflow.operators.bash import BashOperator
 from airflow.providers.common.sql.operators.sql import SQLExecuteQueryOperator
 from airflow.operators.python import PythonOperator
 from airflow.utils.dates import days_ago
-from airflow.models.dag  import DagContext
 
 from utils.dev2prod_data import dev2prod_data
 from utils.insert_data_dev import insert_data_dev
-from utils.notify import notify_on_failure
+from utils.notify import notify_on_failure, notify_on_success
+
+
 # [END import_module]
- 
+def get_params(**context):
+    params = context['dag_run'].conf
 # [START instantiate_dag]
 with DAG(
     "my_first_dag",
@@ -37,7 +39,7 @@ with DAG(
         # 'sla': timedelta(hours=2),
         # 'execution_timeout': timedelta(seconds=300),
         'on_failure_callback': notify_on_failure, # or list of functions
-        # 'on_success_callback': some_other_function, # or list of functions
+        #'on_success_callback': notify_on_success, # or list of functions
         # 'on_retry_callback': another_function, # or list of functions
         # 'sla_miss_callback': yet_another_function, # or list of functions
         # 'on_skipped_callback': another_function, #or list of functions
@@ -45,7 +47,7 @@ with DAG(
     },
     # [END default_args]
     description="A simple tutorial DAG",
-    schedule=timedelta(days=1),
+    schedule=None,
     start_date=days_ago(2),
     catchup=False,
     tags=["example"],
@@ -53,6 +55,11 @@ with DAG(
     # [END instantiate_dag]
     # t1, t2 and t3 are examples of tasks created by instantiating operators
     # [START basic_task]
+    get_parameters =PythonOperator(
+        task_id="get_parameters",
+        python_callable=get_params,
+    )
+
     bash = BashOperator(
         task_id="print_date",
         bash_command="date",
@@ -76,7 +83,12 @@ with DAG(
         python_callable=dev2prod_data
     )
     # [END basic_task]
+
+    success = PythonOperator(
+        task_id="success",
+        python_callable=notify_on_success,
+    )
     
-    bash >> insert_data_dev >> [insert_select_newtable_1, migration_prod]
+    get_parameters>>bash >> insert_data_dev >> [insert_select_newtable_1, migration_prod] >> success
 
 # [END tutorial]

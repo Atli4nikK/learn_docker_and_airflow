@@ -12,14 +12,10 @@ def dev2prod_data(**context):
     4. Получаем курсор для работы с базой данных prod.
     5. Формируем запрос на вставку данных в prod.
     6. Вставляем данные в prod.
-    7. Логируем в таблицу log, связываем Даг и ID запуска.
     """
-
 
     from utils.get_cursor import get_cursor
 
-
-    ui_run_id = context['dag_run'].run_id
 
     # Работа с источником
     cursor_dev = get_cursor("Conn1")
@@ -36,13 +32,6 @@ def dev2prod_data(**context):
         sql_insert = sql_insert + 'INSERT INTO public.newtable (column1, run_id) VALUES(' + str(source)[1:-1] + ');'
     sql_insert = sql_insert + 'commit;'
     cursor_prod.execute(sql_insert)
-
-    # Логируем в таблицу log, связываем Даг и ID запуска
-    sql_run_id = 'select max(run_id) from public.newtable;'
-    cursor_prod.execute(sql_run_id)
-    run_id = cursor_prod.fetchone()
-    sql_log = "insert into public.log(dag, run_id, ui_run_id)values('my_first_dag', " + str(run_id)[1:-2] + ", '" + str(ui_run_id) + "');commit;"
-    cursor_prod.execute(sql_log)
 
     # Надо изучить другой варинат
     # hook_dev = PostgresHook(postgres_conn_id='Conn1',schema='public')

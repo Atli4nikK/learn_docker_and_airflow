@@ -1,4 +1,4 @@
-def get_weather():
+def get_weather(**context):
     from utils.config import tg_bot_token, open_weather_token
     import requests
     import datetime as dt
@@ -18,11 +18,9 @@ def get_weather():
         "Snow": "Снег \U0001F328",
         "Mist": "Туман \U0001F32B",
     }
-
-    city = 'Krasnodar'
-
+    
     try:
-        r = requests.get(f'http://api.openweathermap.org/data/2.5/weather?q={city}&appid={open_weather_token}&units=metric')
+        r = requests.get(f'http://api.openweathermap.org/data/2.5/weather?q={context['dag_run'].conf.get("City")}&lang=ru&units=metric&appid={open_weather_token}&units=metric')
         data = r.json()
         #pprint(data)
 

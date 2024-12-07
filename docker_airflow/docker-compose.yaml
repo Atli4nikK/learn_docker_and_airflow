@@ -77,7 +77,7 @@ x-airflow-common:
     - ${AIRFLOW_PROJ_DIR:-.}/logs:/opt/airflow/logs
     - ${AIRFLOW_PROJ_DIR:-.}/config:/opt/airflow/config
     - ${AIRFLOW_PROJ_DIR:-.}/plugins:/opt/airflow/plugins
-  user: "${AIRFLOW_UID:-50000}:0"
+  user: "0:0"
   depends_on:
     &airflow-common-depends-on
     redis:
@@ -283,6 +283,17 @@ services:
       <<: *airflow-common-depends-on
       airflow-init:
         condition: service_completed_successfully
-
+  
+  docker-socket-proxy:
+    image: tecnativa/docker-socket-proxy:0.1.1
+    environment:
+      CONTAINERS: 1
+      IMAGES: 1
+      AUTH: 1
+      POST: 1
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+    restart: always
+    
 volumes:
   postgres-db-volume:
