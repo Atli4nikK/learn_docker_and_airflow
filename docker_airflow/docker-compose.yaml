@@ -100,6 +100,16 @@ services:
       retries: 5
       start_period: 5s
     restart: always
+  
+  selenium-chrome:
+    image: selenium/standalone-chrome:132.0  # Укажите нужную версию
+    container_name: selenium-chrome
+    ports:
+      - "4444:4444"  # Порт для подключения к Selenium Grid
+    shm_size: 2gb  # Увеличьте размер shared memory, если нужно
+    depends_on:
+      <<: *airflow-common-depends-on
+
 
   redis:
     # Redis is limited to 7.2-bookworm due to licencing change

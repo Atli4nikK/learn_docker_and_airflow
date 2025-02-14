@@ -4,6 +4,7 @@ from airflow.operators.bash import BashOperator
 from datetime import datetime,timedelta
 from airflow.utils.dates import days_ago
 from utils.notify import notify_on_failure
+from docker.types import Mount
 
 default_args = {
     "depends_on_past": False,
@@ -43,14 +44,34 @@ with DAG(
     )
 
     train_model = DockerOperator(
-        task_id="train_model",
+        task_id="car_checker",
         docker_url="tcp://docker-socket-proxy:2375",
         api_version="auto",
-        auto_remove=True, # в случае True контейнер самовыпиливается после отработки ДАГА
-        image="train_model:v1.0",
-        container_name="train_model",
+        auto_remove="force", # в случае True контейнер самовыпиливается после отработки ДАГА
+        image="car-filtering:latest",
+        container_name="car-filtering",
         environment={},
+        mounts=[
+            Mount(
+                source="C:/Users/koldyrkaev/Desktop/python/airflow1/learn_docker_and_airflow/docker_airflow/dags/train_model/images",
+                target="/app/images",
+                type="bind"
+            ),
+            Mount(
+                source="C:/Users/koldyrkaev/Desktop/python/airflow1/learn_docker_and_airflow/docker_airflow/dags/train_model/no_cars",
+                target="/app/no_cars",
+                type="bind"
+            ),
+            Mount(
+                source="C:/Users/koldyrkaev/Desktop/python/airflow1/learn_docker_and_airflow/docker_airflow/dags/train_model/check.txt",
+                target="/app/check.txt",
+                type="bind"
+            ),
+        ],
+        #network_mode="bridge",
+        #docker run -it --rm -v <path_to_your_folder>:/app/images -v <path_to_your_folder>:/app/no_cars -v <path_to_your_check.txt>:/app/check.txt car-filtering
         #command=["python", "main_extend.py"], # если нам надо запустить другой скрипт без пересборки образа
+        #docker run -it --rm -v  -v  -v  car-filtering
     )
 
     dataset_create >> train_model

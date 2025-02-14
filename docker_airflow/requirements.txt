@@ -1,1 +1,4 @@
 ntscraper
+icrawler
+selenium
+pillow

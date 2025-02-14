@@ -28,7 +28,8 @@ CREATE TABLE um.dag_schedules (
 
 INSERT INTO um.dag_schedules (dag_name,schedule,params) VALUES
 	 ('my_first_dag','daily','{}'),
-	 ('openweather_dag','daily_8','{"City":"Krasnodar"}');
+	 ('openweather_dag','daily_8','{"City":"Krasnodar"}'),
+	 ('s3_dag', 'monthly', '{}');
 
 -- DROP TABLE um.loading;
 
@@ -56,8 +57,9 @@ CREATE TABLE um.schedules (
 );
 
 INSERT INTO um.schedules (schedule,sql_expression) VALUES
-	 ('daily','select case when now() > to_timestamp(to_char(now(), ''ddmmYYYY'') || '' 00:05'', ''ddmmYYYY hh24:mi'') then ''START'' else '''' end'),
-	 ('daily_8','select case when now() > to_timestamp(to_char(now(), ''ddmmYYYY'') || '' 08:00'', ''ddmmYYYY hh24:mi'') then ''START'' else '''' end');
+	 ('daily','select case when now() > to_timestamp(to_char(now(), ''ddmmYYYY'') || '' 00:05'', ''ddmmYYYY hh24:mi'') then ''START'' else null end'),
+	 ('daily_8','select case when now() > to_timestamp(to_char(now(), ''ddmmYYYY'') || '' 08:00'', ''ddmmYYYY hh24:mi'') then ''START'' else null end'),
+	 ('monthly','select case when extract(day from now()) = 1 and now() > to_timestamp(to_char(now(), ''ddmmYYYY'') || '' 00:05'', ''ddmmYYYY hh24:mi'') then ''START'' else null end');
 
 -- DROP SEQUENCE um.seq_run_id;
 
@@ -80,6 +82,7 @@ declare
   v_run_id int8 := 0;
   str record;
   v_already_started varchar;
+  v_result varchar;
 BEGIN
   for str in (
 	select d.dag_name, s.sql_expression, d.params
@@ -87,10 +90,14 @@ BEGIN
 	inner join um.schedules s on s.schedule = d.schedule
   )
   loop
-    if str.sql_expression is null
-	then v_status := ''; continue;
+
+	EXECUTE str.sql_expression INTO v_result;
+
+    if v_result is null
+	then v_status := '';
+         continue;
 	end if;
-	
+
 	execute 'select max(l.flag)
 			from um.loading l
 			where l.dag = $1
