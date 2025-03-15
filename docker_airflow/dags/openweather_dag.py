@@ -1,68 +1,89 @@
+"""
+DAG для получения данных о погоде с OpenWeather API
+"""
+from datetime import datetime, timedelta
+
+# Импорты Airflow
 from airflow.models.dag import DAG
 from airflow.operators.python import PythonOperator
 from airflow.utils.dates import days_ago
 
-from datetime import timedelta
-
+# Пользовательские модули
 from utils.notify import notify_on_failure, notify_on_success
 from utils.openweather_etl import get_weather
 
-defautl_args = {
-    "depends_on_past": False,
-    "email": ["airflow@example.com"],
-    "email_on_failure": False,
-    "email_on_retry": False,
-    "retries": 0,
-    "retry_delay": timedelta(minutes=5),
-    # 'queue': 'bash_queue',
-    # 'pool': 'backfill',
-    # 'priority_weight': 10,
-    # 'end_date': datetime(2016, 1, 1),
-    # 'wait_for_downstream': False,
-    # 'sla': timedelta(hours=2),
-    # 'execution_timeout': timedelta(seconds=300),
-    'on_failure_callback': notify_on_failure, # or list of functions
-    #'on_success_callback': notify_on_success, # or list of functions
-    # 'on_retry_callback': another_function, # or list of functions
-    # 'sla_miss_callback': yet_another_function, # or list of functions
-    # 'on_skipped_callback': another_function, #or list of functions
-    # 'trigger_rule': 'all_success'
-}
+# --- КОНФИГУРАЦИЯ DAG ---
+DAG_ID = "openweather_dag"
+DAG_DESCRIPTION = "Получение и обработка данных о погоде"
+DAG_SCHEDULE = None
+DAG_CATCHUP = False
+DAG_TAGS = ["example"]
+
+# --- ОПРЕДЕЛЕНИЕ ФУНКЦИЙ ---
 def get_params(**context):
+    """
+    Получает параметры из контекста DAG Run
+    
+    Args:
+        **context: Контекст выполнения задачи Airflow
+    """
     params = context['dag_run'].conf
 
+# --- ОПРЕДЕЛЕНИЕ DAG ---
 with DAG(
-    'openweather_dag',
-    # [START default_args]
-    # These args will get passed on to each operator
-    # You can override them on a per-task basis during operator initialization
-    default_args=defautl_args,
-    # [END default_args]
-    description="WeatherDag",
-    schedule=None,
+    DAG_ID,
+    # Аргументы по умолчанию для всех задач
+    default_args={
+        "depends_on_past": False,
+        "email": ["airflow@example.com"],
+        "email_on_failure": False,
+        "email_on_retry": False,
+        "retries": 0,
+        "retry_delay": timedelta(minutes=5),
+        'on_failure_callback': notify_on_failure,
+    },
+    description=DAG_DESCRIPTION,
+    schedule=DAG_SCHEDULE,
     start_date=days_ago(2),
-    catchup=False,
-    tags=["example"]
+    catchup=DAG_CATCHUP,
+    tags=DAG_TAGS,
 ) as dag:
     
-    get_parameters =PythonOperator(
+    # --- ОПРЕДЕЛЕНИЕ ЗАДАЧ ---
+    
+    # Задача для получения параметров
+    get_parameters = PythonOperator(
         task_id="get_parameters",
         python_callable=get_params,
+        doc_md="""
+        ## Получение параметров
+        
+        Эта задача получает параметры из контекста DAG Run.
+        """,
     )
 
+    # Python-задача для получения данных о погоде
     python_task = PythonOperator(
         task_id="python_task",
         python_callable=get_weather,
-        # op_kwargs: Optional[Dict] = None,
-        # op_args: Optional[List] = None,
-        # templates_dict: Optional[Dict] = None
-        # templates_exts: Optional[List] = None
+        doc_md="""
+        ## Получение данных о погоде
+        
+        Эта задача получает данные о погоде из OpenWeather API и сохраняет их.
+        """,
     )
 
+    # Задача оповещения об успешном выполнении
     success = PythonOperator(
         task_id="success",
         python_callable=notify_on_success,
+        doc_md="""
+        ## Оповещение об успешном выполнении
+        
+        Отправляет уведомление об успешном выполнении DAG.
+        """,
     )
 
-    get_parameters>>python_task >> success
+    # --- ОПРЕДЕЛЕНИЕ ЗАВИСИМОСТЕЙ ---
+    get_parameters >> python_task >> success
      

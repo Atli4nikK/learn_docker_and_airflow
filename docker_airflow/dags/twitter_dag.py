@@ -1,55 +1,78 @@
+"""
+DAG для получения данных из Twitter
+"""
+from datetime import datetime, timedelta
+
+# Импорты Airflow
 from airflow.models.dag import DAG
 from airflow.operators.python import PythonOperator
 from airflow.utils.dates import days_ago
 
-from datetime import timedelta
-
-from utils.twitter_etl import twitter_etl
+# Пользовательские модули
 from utils.notify import notify_on_failure
+from utils.twitter_etl import twitter_etl
 
+# --- КОНФИГУРАЦИЯ DAG ---
+DAG_ID = "twitter_dag"
+DAG_DESCRIPTION = "Получение данных из Twitter API"
+DAG_SCHEDULE = None
+DAG_CATCHUP = False
+DAG_TAGS = ["example"]
 
+# --- ОПРЕДЕЛЕНИЕ ФУНКЦИЙ ---
+def get_params(**context):
+    """
+    Получает параметры из контекста DAG Run
+    
+    Args:
+        **context: Контекст выполнения задачи Airflow
+    """
+    params = context['dag_run'].conf
+
+# --- ОПРЕДЕЛЕНИЕ DAG ---
 with DAG(
-    'twitter_dag',
-    # [START default_args]
-    # These args will get passed on to each operator
-    # You can override them on a per-task basis during operator initialization
+    DAG_ID,
+    # Аргументы по умолчанию для всех задач
     default_args={
         "depends_on_past": False,
         "email": ["airflow@example.com"],
         "email_on_failure": False,
         "email_on_retry": False,
-        "retries": 0,
+        "retries": 1,
         "retry_delay": timedelta(minutes=5),
-        # 'queue': 'bash_queue',
-        # 'pool': 'backfill',
-        # 'priority_weight': 10,
-        # 'end_date': datetime(2016, 1, 1),
-        # 'wait_for_downstream': False,
-        # 'sla': timedelta(hours=2),
-        # 'execution_timeout': timedelta(seconds=300),
-        'on_failure_callback': notify_on_failure, # or list of functions
-        # 'on_success_callback': some_other_function, # or list of functions
-        # 'on_retry_callback': another_function, # or list of functions
-        # 'sla_miss_callback': yet_another_function, # or list of functions
-        # 'on_skipped_callback': another_function, #or list of functions
-        # 'trigger_rule': 'all_success'
+        'on_failure_callback': notify_on_failure,
     },
-    # [END default_args]
-    description="TweeterDAG",
-    schedule=None,
+    description=DAG_DESCRIPTION,
+    schedule=DAG_SCHEDULE,
     start_date=days_ago(2),
-    catchup=False,
-    tags=["example"],
+    catchup=DAG_CATCHUP,
+    tags=DAG_TAGS,
 ) as dag:
-
-    python_task = PythonOperator(
-        task_id="python_task",
-        python_callable=twitter_etl,
-        # op_kwargs: Optional[Dict] = None,
-        # op_args: Optional[List] = None,
-        # templates_dict: Optional[Dict] = None
-        # templates_exts: Optional[List] = None
+    
+    # --- ОПРЕДЕЛЕНИЕ ЗАДАЧ ---
+    
+    # Задача для получения параметров
+    get_parameters = PythonOperator(
+        task_id="get_parameters",
+        python_callable=get_params,
+        doc_md="""
+        ## Получение параметров
+        
+        Эта задача получает параметры из контекста DAG Run.
+        """,
     )
 
-    python_task
+    # Python-задача для получения данных из Twitter
+    twitter_task = PythonOperator(
+        task_id="python_task",
+        python_callable=twitter_etl,
+        doc_md="""
+        ## Получение данных из Twitter
+        
+        Эта задача получает данные из Twitter API и сохраняет их.
+        """,
+    )
+
+    # --- ОПРЕДЕЛЕНИЕ ЗАВИСИМОСТЕЙ ---
+    get_parameters >> twitter_task
      

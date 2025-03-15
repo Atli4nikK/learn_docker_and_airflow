@@ -74,9 +74,14 @@ x-airflow-common:
     # AIRFLOW_CONFIG: '/opt/airflow/config/airflow.cfg'
   volumes:
     - ${AIRFLOW_PROJ_DIR:-.}/dags:/opt/airflow/dags
+    # Монтирование ваших репозиториев
+    - C:/Users/koldyrkaev/Desktop/GIT/autotrend/dags:/opt/airflow/dags/autotrend
+    - C:/Users/koldyrkaev/Desktop/GIT/ESIC/dags:/opt/airflow/dags/esic
     - ${AIRFLOW_PROJ_DIR:-.}/logs:/opt/airflow/logs
     - ${AIRFLOW_PROJ_DIR:-.}/config:/opt/airflow/config
     - ${AIRFLOW_PROJ_DIR:-.}/plugins:/opt/airflow/plugins
+    # Общие библиотеки и утилиты для всех проектов
+    - ${AIRFLOW_PROJ_DIR:-.}/common:/opt/airflow/common
   user: "0:0"
   depends_on:
     &airflow-common-depends-on

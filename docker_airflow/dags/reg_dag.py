@@ -1,48 +1,55 @@
+"""
+DAG для регистрации и запуска SQL процедур
+"""
+from datetime import datetime, timedelta
+
+# Импорты Airflow
 from airflow.models.dag import DAG
 from airflow.operators.trigger_dagrun import TriggerDagRunOperator
 from airflow.providers.common.sql.operators.sql import SQLExecuteQueryOperator
-from datetime import datetime, timedelta
 from airflow.utils.dates import days_ago
 
+# Пользовательские модули
 from utils.notify import notify_on_failure
 
+# --- КОНФИГУРАЦИЯ DAG ---
+DAG_ID = "reg_dag"
+DAG_DESCRIPTION = "Регистрация и запуск SQL процедур"
+DAG_SCHEDULE = '0 */1 * * *'  # Каждый час
+DAG_CATCHUP = False
+DAG_TAGS = ["example"]
 
-
-default_args = {
-    "depends_on_past": False,
-    "email": ["airflow@example.com"],
-    "email_on_failure": False,
-    "email_on_retry": False,
-    "retries": 1,
-    "retry_delay": timedelta(minutes=5),
-    # 'queue': 'bash_queue',
-    # 'pool': 'backfill',
-    # 'priority_weight': 10,
-    # 'end_date': datetime(2016, 1, 1),
-    # 'wait_for_downstream': False,
-    # 'sla': timedelta(hours=2),
-    # 'execution_timeout': timedelta(seconds=300),
-    'on_failure_callback': notify_on_failure, # or list of functions
-    # 'on_success_callback': some_other_function, # or list of functions
-    # 'on_retry_callback': another_function, # or list of functions
-    # 'sla_miss_callback': yet_another_function, # or list of functions
-    # 'on_skipped_callback': another_function, #or list of functions
-    # 'trigger_rule': 'all_success'
-}
-
+# --- ОПРЕДЕЛЕНИЕ DAG ---
 with DAG(
-    "reg_dag",
-    default_args=default_args,
-    description="Registration DAG",
-    catchup=False,
-    schedule = '0 */1 * * *',
+    DAG_ID,
+    # Аргументы по умолчанию для всех задач
+    default_args={
+        "depends_on_past": False,
+        "email": ["airflow@example.com"],
+        "email_on_failure": False,
+        "email_on_retry": False,
+        "retries": 1,
+        "retry_delay": timedelta(minutes=5),
+        'on_failure_callback': notify_on_failure,
+    },
+    description=DAG_DESCRIPTION,
+    schedule=DAG_SCHEDULE,
     start_date=days_ago(2),
-    tags=["example"],
+    catchup=DAG_CATCHUP,
+    tags=DAG_TAGS,
 ) as dag:
     
-    SQLExecuteQueryOperator(
-        task_id="reg_dag",
+    # --- ОПРЕДЕЛЕНИЕ ЗАДАЧ ---
+    
+    # SQL-задача для запуска процедуры регистрации
+    reg_task = SQLExecuteQueryOperator(
+        task_id="reg_task",
         sql="select um.dag_reg();",
-        conn_id="Conn1"   
+        conn_id="Conn1",
+        doc_md="""
+        ## Выполнение процедуры регистрации
+        
+        Запускает хранимую процедуру dag_reg() в схеме um.
+        """,
     )
 

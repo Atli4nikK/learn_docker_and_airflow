@@ -1,77 +1,98 @@
+"""
+DAG для запуска контейнеров Docker
+"""
+from datetime import datetime, timedelta
+
+# Импорты Airflow
 from airflow import DAG
+from airflow.operators.python import PythonOperator
 from airflow.providers.docker.operators.docker import DockerOperator
-from airflow.operators.bash import BashOperator
-from datetime import datetime,timedelta
 from airflow.utils.dates import days_ago
-from utils.notify import notify_on_failure
 from docker.types import Mount
 
-default_args = {
-    "depends_on_past": False,
-    "email": ["airflow@example.com"],
-    "email_on_failure": False,
-    "email_on_retry": False,
-    "retries": 0,
-    "retry_delay": timedelta(minutes=5),
-    # 'queue': 'bash_queue',
-    # 'pool': 'backfill',
-    # 'priority_weight': 10,
-    # 'end_date': datetime(2016, 1, 1),
-    # 'wait_for_downstream': False,
-    # 'sla': timedelta(hours=2),
-    # 'execution_timeout': timedelta(seconds=300),
-    'on_failure_callback': notify_on_failure, # or list of functions
-    # 'on_success_callback': some_other_function, # or list of functions
-    # 'on_retry_callback': another_function, # or list of functions
-    # 'sla_miss_callback': yet_another_function, # or list of functions
-    # 'on_skipped_callback': another_function, #or list of functions
-    # 'trigger_rule': 'all_success'
-}
+# Пользовательские модули
+from utils.notify import notify_on_failure, notify_on_success
 
+# --- КОНФИГУРАЦИЯ DAG ---
+DAG_ID = "docker_dag"
+DAG_DESCRIPTION = "Запуск задач в Docker-контейнерах"
+DAG_SCHEDULE = None
+DAG_CATCHUP = False
+DAG_TAGS = ["example", "docker"]
+
+# --- ОПРЕДЕЛЕНИЕ DAG ---
 with DAG(
-    dag_id="docker_dag", 
-    default_args=default_args,
-    description="Docker DAG",
-    catchup=False,
-    schedule=None,
+    DAG_ID,
+    default_args={
+        "depends_on_past": False,
+        "email": ["airflow@example.com"],
+        "email_on_failure": False,
+        "email_on_retry": False,
+        "retries": 1,
+        "retry_delay": timedelta(minutes=5),
+        'on_failure_callback': notify_on_failure,
+    },
+    description=DAG_DESCRIPTION,
+    schedule=DAG_SCHEDULE,
     start_date=days_ago(2),
-    tags=["example"],
+    catchup=DAG_CATCHUP,
+    tags=DAG_TAGS,
 ) as dag:
     
-    dataset_create = BashOperator(
-        task_id="dataset_create",
-        bash_command="echo 'Dataset create'",
-    )
-
-    train_model = DockerOperator(
-        task_id="car_checker",
+    # --- ОПРЕДЕЛЕНИЕ ЗАДАЧ ---
+    
+    # Задача запуска контейнера PostgreSQL
+    docker_postgres = DockerOperator(
+        task_id='docker_postgres',
+        image='postgres:14.0',
+        container_name='docker_postgres',
+        api_version='auto',
+        auto_remove=True,
+        environment={
+            'POSTGRES_USER': 'postgres',
+            'POSTGRES_PASSWORD': 'postgres',
+            'POSTGRES_DB': 'postgres',
+        },
         docker_url="tcp://docker-socket-proxy:2375",
-        api_version="auto",
-        auto_remove="force", # в случае True контейнер самовыпиливается после отработки ДАГА
-        image="car-filtering:latest",
-        container_name="car-filtering",
-        environment={},
-        mounts=[
-            Mount(
-                source="C:/Users/koldyrkaev/Desktop/python/airflow1/learn_docker_and_airflow/docker_airflow/dags/train_model/images",
-                target="/app/images",
-                type="bind"
-            ),
-            Mount(
-                source="C:/Users/koldyrkaev/Desktop/python/airflow1/learn_docker_and_airflow/docker_airflow/dags/train_model/no_cars",
-                target="/app/no_cars",
-                type="bind"
-            ),
-            Mount(
-                source="C:/Users/koldyrkaev/Desktop/python/airflow1/learn_docker_and_airflow/docker_airflow/dags/train_model/check.txt",
-                target="/app/check.txt",
-                type="bind"
-            ),
-        ],
-        #network_mode="bridge",
-        #docker run -it --rm -v <path_to_your_folder>:/app/images -v <path_to_your_folder>:/app/no_cars -v <path_to_your_check.txt>:/app/check.txt car-filtering
-        #command=["python", "main_extend.py"], # если нам надо запустить другой скрипт без пересборки образа
-        #docker run -it --rm -v  -v  -v  car-filtering
+        network_mode="bridge",
+        command='postgres -c max_connections=100',
+        doc_md="""
+        ## Запуск PostgreSQL в Docker
+        
+        Эта задача запускает контейнер PostgreSQL для обработки данных.
+        """,
     )
-
-    dataset_create >> train_model
+    
+    # Задача запуска контейнера Python
+    docker_python = DockerOperator(
+        task_id='docker_python',
+        image='python:3.10-slim',
+        container_name='docker_python',
+        api_version='auto',
+        auto_remove=True,
+        environment={
+            'PYTHONUNBUFFERED': '1',
+        },
+        docker_url="tcp://docker-socket-proxy:2375",
+        network_mode="bridge",
+        command='python -c "import time; print(\'Processing data...\'); time.sleep(5); print(\'Processing complete!\')"',
+        doc_md="""
+        ## Запуск Python в Docker
+        
+        Эта задача запускает контейнер Python для обработки данных.
+        """,
+    )
+    
+    # Задача оповещения об успешном выполнении
+    success = PythonOperator(
+        task_id="success",
+        python_callable=notify_on_success,
+        doc_md="""
+        ## Оповещение об успешном выполнении
+        
+        Отправляет уведомление об успешном выполнении DAG.
+        """,
+    )
+    
+    # --- ОПРЕДЕЛЕНИЕ ЗАВИСИМОСТЕЙ ---
+    docker_postgres >> docker_python >> success
