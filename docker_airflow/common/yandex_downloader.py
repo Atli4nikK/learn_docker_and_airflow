@@ -14,11 +14,11 @@ def yandex_downloader(**context):
     # Настройки  
     QUERY = context['keyword']              
     NUM_IMAGES = context.get('num_images')
-    SAVE_FOLDER = f'/opt/airflow/dags/data/{QUERY}'  # Папка для сохранения
+    SAVE_FOLDER = f'/opt/airflow/dags/esic/data/{QUERY}'  # Папка для сохранения
     MIN_IMAGE_SIZE = 50  # Минимальный размер изображения (ширина или высота)
 
     # Функция для загрузки обработанных URL
-    def load_downloaded_urls(file_path='/opt/airflow/dags/data/downloaded_urls.txt'):
+    def load_downloaded_urls(file_path='/opt/airflow/dags/esic/data/downloaded_urls.txt'):
         downloaded_urls = set()
         try:
             with open(file_path, 'r') as f:
@@ -122,7 +122,7 @@ def yandex_downloader(**context):
                 
                 downloaded_images += 1
 
-                with open('/opt/airflow/dags/data/downloaded_urls.txt', 'a') as f:
+                with open('/opt/airflow/dags/esic/data/downloaded_urls.txt', 'a') as f:
                     f.write(url + '\n')
                     downloaded_urls.add(url)
 
