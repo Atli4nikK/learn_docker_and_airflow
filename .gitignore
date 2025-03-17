@@ -11,10 +11,4 @@ docker_airflow/airflowenv
 
 docker_airflow/dags/docker_dag.py
 
-docker_airflow/dags/common/config.py
-
-docker_airflow/dags/train_model/test/*
-
-docker_airflow/dags/train_model/no_cars/*
-
-train_model/config.py
+docker_airflow/common/config.py
