@@ -22,7 +22,7 @@ def upload_to_s3(**kwargs):
     s3_dir = kwargs['s3_dir']
     bucket_name = kwargs['bucket_name']
 
-    local_dir = f'/opt/airflow/dags/data/{keyword}'
+    local_dir = f'/opt/airflow/dags/esic/data/{keyword}'
 
     s3_hook = S3Hook(aws_conn_id='s3_conn_id')
     upload_images = 0
