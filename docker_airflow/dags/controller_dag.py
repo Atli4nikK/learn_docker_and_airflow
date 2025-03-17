@@ -10,16 +10,15 @@ from airflow.providers.common.sql.operators.sql import SQLExecuteQueryOperator
 from airflow.utils.dates import days_ago
 
 # Пользовательские модули
-from utils.get_run_id import get_run_id
-from utils.notify import notify_on_failure
-from utils.get_cursor import get_cursor
+from common.notify import notify_on_failure
+from common.get_cursor import get_cursor
 
 # --- КОНФИГУРАЦИЯ DAG ---
 DAG_ID = "controller_dag"
 DAG_DESCRIPTION = "Контроллер для динамического запуска DAG"
 DAG_SCHEDULE = '5 */1 * * *'  # 5 минут каждого часа
 DAG_CATCHUP = False
-DAG_TAGS = ["example"]
+DAG_TAGS = ["koldyrkaevs"]
 
 # --- ОПРЕДЕЛЕНИЕ ФУНКЦИЙ ---
 def get_dag():

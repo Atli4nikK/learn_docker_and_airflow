@@ -10,14 +10,14 @@ from airflow.providers.common.sql.operators.sql import SQLExecuteQueryOperator
 from airflow.utils.dates import days_ago
 
 # Пользовательские модули
-from utils.notify import notify_on_failure
+from common.notify import notify_on_failure
 
 # --- КОНФИГУРАЦИЯ DAG ---
 DAG_ID = "reg_dag"
 DAG_DESCRIPTION = "Регистрация и запуск SQL процедур"
 DAG_SCHEDULE = '0 */1 * * *'  # Каждый час
 DAG_CATCHUP = False
-DAG_TAGS = ["example"]
+DAG_TAGS = ["koldyrkaevs"]
 
 # --- ОПРЕДЕЛЕНИЕ DAG ---
 with DAG(

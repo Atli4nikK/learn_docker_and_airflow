@@ -1,8 +1,8 @@
 def get_weather(**context):
-    from utils.config import tg_bot_token, open_weather_token
+    from common.config import tg_bot_token, open_weather_token
     import requests
     import datetime as dt
-    from utils.send_tg_message import send_message
+    from common.send_tg_message import send_message
 
 
     '''

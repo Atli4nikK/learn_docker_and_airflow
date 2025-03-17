@@ -1,6 +1,6 @@
 def send_message(message):
 
-    from utils.config import tg_bot_token, chat_id
+    from common.config import tg_bot_token, chat_id
     import requests
 
     url = f'https://api.telegram.org/bot{tg_bot_token}/sendMessage'

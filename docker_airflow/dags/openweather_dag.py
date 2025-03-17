@@ -9,7 +9,7 @@ from airflow.operators.python import PythonOperator
 from airflow.utils.dates import days_ago
 
 # Пользовательские модули
-from utils.notify import notify_on_failure, notify_on_success
+from common.notify import notify_on_failure, notify_on_success
 from utils.openweather_etl import get_weather
 
 # --- КОНФИГУРАЦИЯ DAG ---
@@ -17,7 +17,7 @@ DAG_ID = "openweather_dag"
 DAG_DESCRIPTION = "Получение и обработка данных о погоде"
 DAG_SCHEDULE = None
 DAG_CATCHUP = False
-DAG_TAGS = ["example"]
+DAG_TAGS = ["koldyrkaevs"]
 
 # --- ОПРЕДЕЛЕНИЕ ФУНКЦИЙ ---
 def get_params(**context):

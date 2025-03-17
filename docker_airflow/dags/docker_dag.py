@@ -11,14 +11,14 @@ from airflow.utils.dates import days_ago
 from docker.types import Mount
 
 # Пользовательские модули
-from utils.notify import notify_on_failure, notify_on_success
+from common.notify import notify_on_failure, notify_on_success
 
 # --- КОНФИГУРАЦИЯ DAG ---
 DAG_ID = "docker_dag"
 DAG_DESCRIPTION = "Запуск задач в Docker-контейнерах"
 DAG_SCHEDULE = None
 DAG_CATCHUP = False
-DAG_TAGS = ["example", "docker"]
+DAG_TAGS = ["koldyrkaevs", "docker"]
 
 # --- ОПРЕДЕЛЕНИЕ DAG ---
 with DAG(

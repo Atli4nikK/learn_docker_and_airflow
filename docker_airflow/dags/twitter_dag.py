@@ -9,7 +9,7 @@ from airflow.operators.python import PythonOperator
 from airflow.utils.dates import days_ago
 
 # Пользовательские модули
-from utils.notify import notify_on_failure
+from common.notify import notify_on_failure
 from utils.twitter_etl import twitter_etl
 
 # --- КОНФИГУРАЦИЯ DAG ---
@@ -17,7 +17,7 @@ DAG_ID = "twitter_dag"
 DAG_DESCRIPTION = "Получение данных из Twitter API"
 DAG_SCHEDULE = None
 DAG_CATCHUP = False
-DAG_TAGS = ["example"]
+DAG_TAGS = ["koldyrkaevs"]
 
 # --- ОПРЕДЕЛЕНИЕ ФУНКЦИЙ ---
 def get_params(**context):

@@ -14,7 +14,7 @@ def dev2prod_data(**context):
     6. Вставляем данные в prod.
     """
 
-    from utils.get_cursor import get_cursor
+    from common.get_cursor import get_cursor
 
 
     # Работа с источником

@@ -10,7 +10,7 @@ def insert_data_dev(**context):
     """
 
 
-    from utils.get_cursor import get_cursor
+    from common.get_cursor import get_cursor
 
 
     # Получаем кастомный id запуска дага

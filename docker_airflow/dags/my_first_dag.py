@@ -14,14 +14,14 @@ from airflow.utils.dates import days_ago
 # Пользовательские модули
 from utils.dev2prod_data import dev2prod_data
 from utils.insert_data_dev import insert_data_dev
-from utils.notify import notify_on_failure, notify_on_success
+from common.notify import notify_on_failure, notify_on_success
 
 # --- КОНФИГУРАЦИЯ DAG ---
 DAG_ID = "my_first_dag"
 DAG_DESCRIPTION = "A simple tutorial DAG"
 DAG_SCHEDULE = None
 DAG_CATCHUP = False
-DAG_TAGS = ["example"]
+DAG_TAGS = ["koldyrkaevs"]
 
 # --- ОПРЕДЕЛЕНИЕ ФУНКЦИЙ ---
 def get_params(**context):
