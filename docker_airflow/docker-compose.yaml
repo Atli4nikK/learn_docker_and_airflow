@@ -59,7 +59,7 @@ x-airflow-common:
     AIRFLOW__CELERY__BROKER_URL: redis://:@redis:6379/0
     AIRFLOW__CORE__FERNET_KEY: ''
     AIRFLOW__CORE__DAGS_ARE_PAUSED_AT_CREATION: 'true'
-    AIRFLOW__CORE__LOAD_EXAMPLES: 'true'
+    AIRFLOW__CORE__LOAD_EXAMPLES: 'false'
     AIRFLOW__API__AUTH_BACKENDS: 'airflow.api.auth.backend.basic_auth,airflow.api.auth.backend.session'
     # yamllint disable rule:line-length
     # Use simple http server on scheduler for health checks
@@ -72,11 +72,16 @@ x-airflow-common:
     # The following line can be used to set a custom config file, stored in the local config folder
     # If you want to use it, outcomment it and replace airflow.cfg with the name of your config file
     # AIRFLOW_CONFIG: '/opt/airflow/config/airflow.cfg'
+    # DAG Processor settings
+    AIRFLOW__SCHEDULER__PROCESSOR_POLL_INTERVAL: '60'
+    AIRFLOW__SCHEDULER__DAG_FILE_PROCESSOR_TIMEOUT: '600'
+    AIRFLOW__SCHEDULER__PARSING_PROCESSES: '2'
   volumes:
     - ${AIRFLOW_PROJ_DIR:-.}/dags:/opt/airflow/dags
     # Монтирование ваших репозиториев
     - C:/Users/koldyrkaev/Desktop/GIT/autotrend/airflow/dags:/opt/airflow/dags/autotrend
     - C:/Users/koldyrkaev/Desktop/GIT/ESIC/airflow/dags:/opt/airflow/dags/esic
+    - C:/Users/koldyrkaev/Desktop/GIT/autotrend/airflow/data:/opt/airflow/autotrend/data
     - ${AIRFLOW_PROJ_DIR:-.}/logs:/opt/airflow/logs
     - ${AIRFLOW_PROJ_DIR:-.}/config:/opt/airflow/config
     - ${AIRFLOW_PROJ_DIR:-.}/plugins:/opt/airflow/plugins
@@ -107,14 +112,16 @@ services:
     restart: always
   
   selenium-chrome:
-    image: selenium/standalone-chrome:132.0  # Укажите нужную версию
+    image: selenium/standalone-chrome:134.0  # Укажите нужную версию
     container_name: selenium-chrome
     ports:
       - "4444:4444"  # Порт для подключения к Selenium Grid
-    shm_size: 2gb  # Увеличьте размер shared memory, если нужно
+    environment:
+      - SE_NODE_MAX_SESSIONS=6  # Максимум 2 параллельные сессии
+      - SE_NODE_MAX_INSTANCES=6  # Максимум 2 экземпляра браузера
+    shm_size: 16gb
     depends_on:
       <<: *airflow-common-depends-on
-
 
   redis:
     # Redis is limited to 7.2-bookworm due to licencing change

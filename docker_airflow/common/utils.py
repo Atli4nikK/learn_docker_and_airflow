@@ -5,7 +5,7 @@ import os
 from datetime import datetime, timedelta
 
 from airflow.models import Variable
-
+from common.notify import notify_on_failure
 
 def get_default_args(owner='airflow', retry_delay_minutes=5, retries=1):
     """
@@ -19,6 +19,7 @@ def get_default_args(owner='airflow', retry_delay_minutes=5, retries=1):
         'email_on_retry': False,
         'retries': retries,
         'retry_delay': timedelta(minutes=retry_delay_minutes),
+        'on_failure_callback': notify_on_failure,
     }
 
 
