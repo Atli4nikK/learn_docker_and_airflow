@@ -48,6 +48,14 @@ def get_dag():
 
     return dags, runs, parameters
 
+# Способ через expand
+# def get_dag_params():
+#     """Возвращает список параметров для запуска DAG'ов"""
+#     cursor_prod = get_cursor("Conn1")
+#     sql_prod = """SELECT run_id, dag, params FROM um.loading where flag = '0';"""
+#     cursor_prod.execute(sql_prod)
+#     return cursor_prod.fetchall()
+
 # Получаем списки DAG-ов для запуска
 dags, runs, parameters = get_dag()
 
@@ -87,3 +95,18 @@ with DAG(
             """,
         )
 
+    # Способ через expand
+    # Создаем базовый оператор с partial
+    # trigger_base = TriggerDagRunOperator.partial(
+    #     task_id="trigger_dag",
+    # ).expand_kwargs( # Расширяем оператор с параметрами из БД
+    #     [ # Формируем список словарей, сначала задаем структуру словаря, потом перебираем параметры
+    #         {
+    #             "trigger_dag_id": item[1],
+    #             "trigger_run_id": item[0],
+    #             "conf": item[2],
+    #             "doc_md": f"## Запуск DAG {item[1]}\n\nТриггерит запуск DAG {item[1]} с run_id={item[0]}."
+    #         }
+    #         for item in get_dag_params()
+    #     ]
+    # )
