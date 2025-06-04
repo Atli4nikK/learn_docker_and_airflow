@@ -15,7 +15,7 @@ from common.notify import notify_on_failure
 # --- КОНФИГУРАЦИЯ DAG ---
 DAG_ID = "reg_dag"
 DAG_DESCRIPTION = "Регистрация и запуск SQL процедур"
-DAG_SCHEDULE = '0 */1 * * *'  # Каждый час
+DAG_SCHEDULE = None #'0 */1 * * *'  # Каждый час
 DAG_CATCHUP = False
 DAG_TAGS = ["koldyrkaevs"]
 

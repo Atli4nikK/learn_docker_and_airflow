@@ -1,4 +1,4 @@
-def notify_on_failure(**context):
+def notify_on_failure(context):
     from common.send_tg_message import send_message
     from common.get_cursor import get_cursor
 

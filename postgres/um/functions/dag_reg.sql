@@ -34,7 +34,8 @@ BEGIN
 
 	  IF v_already_started IS NULL
 	  THEN v_run_id := NEXTVAL('seq_run_id');
-	       INSERT INTO um.loading VALUES (v_run_id, v_str.dag_name, '0', NOW()::DATE - 1, v_str.params);
+	       INSERT INTO um.loading (run_id, dag, flag, oper_day, params)
+                         VALUES (v_run_id, v_str.dag_name, '0', NOW()::DATE - 1, v_str.params);
 	  END IF;
 
   END LOOP;

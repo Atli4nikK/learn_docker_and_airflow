@@ -8,7 +8,8 @@ DECLARE
 BEGIN
 
   UPDATE um.loading
-  SET flag = '1'
+  SET flag = '1',
+      end_date = now()
   WHERE dag = p_dag_name
     AND run_id = p_run_id;
 

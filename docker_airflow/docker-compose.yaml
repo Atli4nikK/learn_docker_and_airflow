@@ -76,6 +76,7 @@ x-airflow-common:
     AIRFLOW__SCHEDULER__PROCESSOR_POLL_INTERVAL: '60'
     AIRFLOW__SCHEDULER__DAG_FILE_PROCESSOR_TIMEOUT: '600'
     AIRFLOW__SCHEDULER__PARSING_PROCESSES: '2'
+    AIRFLOW__CORE__DEFAULT_TIMEZONE: Europe/Moscow
   volumes:
     - ${AIRFLOW_PROJ_DIR:-.}/dags:/opt/airflow/dags
     # Монтирование ваших репозиториев
